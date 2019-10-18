@@ -42,6 +42,7 @@ class Steel (object):
 
         if amount:
             self.amount = amount
+            self.steelArea(self.amount, self.bar_type)
         if bar_type:
             self.bar_type = bar_type
             self.steelArea(self.amount, self.bar_type)
@@ -150,7 +151,7 @@ class Steel (object):
                      '#18': 4.00}
 
         # Calculate steel_area if inputs are valid
-        if bar_type in steelarea.keys() and amount > 0:
+        if bar_type in steelarea.keys() and amount >= 0:
             self.steel_area = steelarea.get(bar_type) * amount
         else:
             print('invalid input into Steel.steelArea')
