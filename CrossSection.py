@@ -145,7 +145,7 @@ class CrossSection(object):
             if counter > 100:
                 print(f'{error} after 100 tries... get better code')
                 break
-        print(f'error is {error} in {counter} iterations')
+        #print(f'error is {error} in {counter} iterations')
         return guess
 
     def findMomentTotal(self, strain, location, neutral_axis=0):
@@ -213,7 +213,10 @@ class CrossSection(object):
         plt.ylabel('y')
         plt.show()
 
-    def PlotMomentCurve(self):
+    def PlotMomentCurve(self, scale='kip*ft'):
+        # ------------------- KRISTINN HLIDAR ------------------------
+        # REMEMBER TO FIX NAME OF VARIABLES HERE TO MAKE MORE READABLE
+        # ------------------------------------------------------------
         strain_0 = 0
         strain_1 = -0.0038
         location = 0
@@ -230,11 +233,46 @@ class CrossSection(object):
             stress[i] = self.findMomentTotal(strain[i], location, neutral_axis)
             strain[i] = strain[i] / (neutral_axis - location)
 
+        if scale == 'kip*ft':
+            stress = stress / 12
+
         plt.plot(strain, stress, '-b')
         plt.grid(True)
         plt.xlabel('curve')
         plt.ylabel('stress')
         plt.show()
+
+    def PlotStressInCrossSection(self, strain, location, neutral_axis=0):
+        '''
+        Plots stress in cross section for given strain and location, and optional neutral axis.
+            If neutral axis is not specified it is calculated automatically.
+        :param strain:              Strain at location
+        :param location:            Location of strain
+        :param neutral_axis:        Location of neutral axis
+        :return:                    Nothing, plots stress over cross section
+        '''
+
+        if neutral_axis:
+            c = neutral_axis
+        else:
+            c = self.findNeutralAxis(strain, location)
+
+        y = linspace(0, self.shape.getHeight(), 100)
+        stress_c = zeros_like(y)
+
+        curve = strain / (neutral_axis - location)
+        e = curve * (neutral_axis - y)
+
+        for i in range(y.size):
+            stress_c[i] = self.concrete.getStress(e[i])
+
+
+        plt.plot(stress_c, -y, '-b')
+        plt.grid(True)
+        plt.xlabel('stress')
+        plt.ylabel('y')
+        plt.show()
+
 
 
 
@@ -252,9 +290,9 @@ if __name__ == '__main__':
     #shape = T_beam(16, 28, 30, 8)
 
     # Create the steel that goes into the cross section
-    steel1 = Steel(10, '#9', 26)
+    steel1 = Steel(5, '#9', 26)
     steel1.changeGrade('60GR')
-    steel2 = Steel(4, '#4', 2)
+    steel2 = Steel(0, '#4', 2)
     print(steel1.getAmount())
 
     # Create the cross section
@@ -267,71 +305,79 @@ if __name__ == '__main__':
     cross_section.addSteel(steel1)
     cross_section.addSteel(steel2)
 
-    force = cross_section.getTotalForce(131e-6, 28, 14.87)
-    print(f'force is {force}')
 
-    #moment = cross_section.findMomentTotal(131e-6, 28)
-    #moment = cross_section.findMomentCapacity(steel1.grade.strain_y(), steel1.getLocation())
-    #print(moment)
-
-    cross_section.printSteelInfo()
-
-    #cross_section.PlotConcreteStress(131e-6, 28)
-
+    # Assignment 4
+    # Problem 1
     cross_section.PlotMomentCurve()
 
-    print(cross_section.concrete.getRuptureStrain())
+    # i)
+    M = cross_section.findMomentTotal(131e-6, 28) / 12
+    print(f'Moment at cracking is {M} kip * ft')
+
+    # ii) Need to find a solution for this
 
 
-    #c = cross_section.findNeutralAxis(steel1.grade.strain_y(), 26)
-    #print(c)
+    # iii)
+    M = cross_section.findMomentTotal(steel1.grade.strain_y(), steel1.getLocation()) / 12
+    print(f'Moment at yield is {M} kip * ft')
 
-'''
-    y = 14.58
-    force_s = cross_section.getSteelForce(132e-6, 28., y)
-    force_c = cross_section.getConcreteForce(132e-6, 28., y)
-    force1 = cross_section.getTotalForce(132e-6, 28, 13)
-    force2 = cross_section.getTotalForce(132e-6, 28, 15)
-    print(force_c)
-    print(force_s)
-    print(force1)
-    print(force2)
+    # iv)
+    M = cross_section.findMomentTotal(-0.0025, 0) / 12
+    print(f'Moment at strain of -0.0025 is {M} kip * ft')
 
-    split = 13 + 2 * force1 / (force1 - force2)
-    print(split)
+    # v)
+    M = cross_section.findMomentTotal(-0.003, 0) / 12
+    print(f'Moment at strain of -0.003 is {M} kip * ft')
 
-    print('------------')
-    force1 = cross_section.getTotalForce(132e-6, 28, split)
-    force2 = cross_section.getTotalForce(132e-6, 28, 15)
-    split = split + (15-split) * force1 / (force1 - force2)
-    print(force1)
-    print(force2)
-    print(split)
-    print('------------')
-    force1 = cross_section.getTotalForce(132e-6, 28, split)
-    force2 = cross_section.getTotalForce(132e-6, 28, 15)
-    split = split + (15-split) * force1 / (force1 - force2)
-    print(force1)
-    print(force2)
-    print(split)
-    print('------------')
-    force1 = cross_section.getTotalForce(132e-6, 28, split)
-    force2 = cross_section.getTotalForce(132e-6, 28, 15)
-    split = split + (15-split) * force1 / (force1 - force2)
-    print(force1)
-    print(force2)
-    print(split)
+    # vi)
+    M = cross_section.findMomentTotal(-0.0038, 0) / 12
+    print(f'Moment at strain of -0.0038 is {M} kip * ft')
 
 
-    cross = CrossSection()
+    # Problem 2
 
-    print(cross.shape.getHeight())
+    # Changing the shape to a circle
+    shape = Circle(28)
 
-    s1 = Steel()
-    s1.setSteelInfo(location=12)
+    # Change steel in cross section
+    steel1.setSteelInfo('#10', 2, 8.3175)
+    steel2.setSteelInfo('#10', 2, 14)
+    steel2.changeGrade('60GR')
 
-    cross.addSteel(s1)
+    # Create new layer of steel and add it
+    steel3 = Steel(2, '#10', 19.6825)
+    steel3.changeGrade('60GR')
+    cross_section.addSteel(steel3)
 
-    cross.printSteelInfo()'''
+    # Create moment curvature
+    cross_section.PlotMomentCurve()
+
+    # i)
+    M = cross_section.findMomentTotal(131e-6, 28) / 12
+    print(f'Moment at cracking is {M} kip * ft')
+
+    # ii)
+    M = cross_section.findMomentTotal(steel3.grade.strain_y(), steel3.getLocation()) / 12
+    print(f'Moment at yield is {M} kip * ft')
+
+    # ii)
+    M = cross_section.findMomentTotal(-0.0025, 0) / 12
+    print(f'Moment at strain of -0.0025 is {M} kip * ft')
+
+    # iv)
+    M = cross_section.findMomentTotal(-0.003, 0) / 12
+    print(f'Moment at strain of -0.003 is {M} kip * ft')
+
+    # v)
+    M = cross_section.findMomentTotal(-0.0038, 0) / 12
+    print(f'Moment at strain of -0.0038 is {M} kip * ft')
+
+
+
+
+
+
+
+
 
 
