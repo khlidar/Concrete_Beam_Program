@@ -207,7 +207,15 @@ class CrossSection(object):
             moment = moment + steel.force(e) * (steel.getLocation() - neutral_axis)
         return moment
 
-
+    def findCurveAfterCrack(self, strain, location):
+        '''
+        Want to create a function that finds the curvature of the beam after it has cracked and
+        developed the same moment as it had at the moment of cracking.
+        :param strain:
+        :param location:
+        :return:
+        '''
+        pass
 
     def PlotConcreteStress(self, strain, location):
         neutral_axis = self.findNeutralAxis(strain, location)
@@ -273,8 +281,8 @@ class CrossSection(object):
         y = linspace(0, self.shape.getHeight(), 100)
         stress_c = zeros_like(y)
 
-        curve = strain / (neutral_axis - location)
-        e = curve * (neutral_axis - y)
+        curve = strain / (c - location)
+        e = curve * (c - y)
 
         for i in range(y.size):
             stress_c[i] = self.concrete.getStress(e[i])
@@ -344,6 +352,7 @@ if __name__ == '__main__':
 
     # vi)
     M = cross_section.findMomentTotal(-0.0038, 0) / 12
+    cross_section.PlotStressInCrossSection(-0.0038, 0)
     print(f'Moment at strain of -0.0038 is {M} kip * ft')
 
 
