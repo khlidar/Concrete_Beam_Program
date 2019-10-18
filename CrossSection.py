@@ -161,7 +161,7 @@ class CrossSection(object):
             if counter > 100:
                 print(f'{error} after 100 tries... get better code')
                 break
-        print(f'error is {error} in {counter} iterations')
+        #print(f'error is {error} in {counter} iterations')
         return guess2
 
     def findMomentTotal(self, strain, location, neutral_axis=0):
@@ -230,9 +230,6 @@ class CrossSection(object):
         plt.show()
 
     def PlotMomentCurve(self, scale='kip*ft'):
-        # ------------------- KRISTINN HLIDAR ------------------------
-        # REMEMBER TO FIX NAME OF VARIABLES HERE TO MAKE MORE READABLE
-        # ------------------------------------------------------------
         strain_0 = 0
         strain_1 = -0.0038
         location = 0
@@ -242,17 +239,17 @@ class CrossSection(object):
         strain = linspace(strain_0, strain_1, steps)
 
         stress = zeros_like(strain)
-
+        curve = zeros_like(strain)
 
         for i in range(strain.size):
             neutral_axis = self.findNeutralAxis(strain[i], location)
             stress[i] = self.findMomentTotal(strain[i], location, neutral_axis)
-            strain[i] = strain[i] / (neutral_axis - location)
+            curve[i] = strain[i] / (neutral_axis - location)
 
         if scale == 'kip*ft':
             stress = stress / 12
 
-        plt.plot(strain, stress, '-b')
+        plt.plot(curve, stress, '-b')
         plt.grid(True)
         plt.xlabel('curve')
         plt.ylabel('stress')
