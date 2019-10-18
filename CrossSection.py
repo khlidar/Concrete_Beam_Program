@@ -119,34 +119,50 @@ class CrossSection(object):
         return force
 
     def findNeutralAxis(self, strain, location):
-        guess = self.shape.getHeight() / 2
+        guess1 = self.shape.getHeight() / 2 - self.shape.getHeight() / 20
+        guess2 = self.shape.getHeight() / 2 + self.shape.getHeight() / 20
 
-        step = self.shape.getHeight() / 10
-        stepsize = 1
+
+        #step = self.shape.getHeight() / 10
+        #slope = 0
+        #stepsize = 1
         counter = 1
 
-        force2 = self.getTotalForce(strain, location, guess)
-        error = abs(force2)
+        force1 = self.getTotalForce(strain, location, guess1)
+        force2 = self.getTotalForce(strain, location, guess2)
+        error = abs(force1)
 
         while error > 0.00001:
-            force1 = self.getTotalForce(strain, location, guess)
-            if (force1 < 0 and force2 > 0) or (force1 > 0 and force2 < 0):
-                stepsize = stepsize + 1
 
-            if force1 > 0.:
-                guess = min(guess + step / pow(2, stepsize), self.shape.getHeight())
-            else:
-                guess = max(guess - step / pow(2, stepsize), 0)
+            slope1 = (force2 - force1) / (guess2 - guess1)
+            step1 = + force2 / slope1
+            guess1 = guess2 - force2 / slope1
+            guess1 = guess2 - step1 * 3 / 4
+            force1 = self.getTotalForce(strain, location, guess1)
+
+            slope2 = (force1 - force2) / (guess1 - guess2)
+            step2 = force1 / slope2
+            guess2 = guess1 - force1 / slope2
+            guess2 = guess1 - step2 * 3 / 4
+            force2 = self.getTotalForce(strain, location, guess2)
+
+            #if (force1 < 0 and force2 > 0) or (force1 > 0 and force2 < 0):
+             #   stepsize = stepsize + 1
+
+            #if force1 > 0.:
+            #    guess = min(guess + step / pow(2, stepsize), self.shape.getHeight())
+            #else:
+            #    guess = max(guess - step / pow(2, stepsize), 0)
 
 
-            force2 = force1
-            error = abs(force1)
+            #force2 = force1
+            error = abs(force2)
             counter += 1
             if counter > 100:
                 print(f'{error} after 100 tries... get better code')
                 break
-        #print(f'error is {error} in {counter} iterations')
-        return guess
+        print(f'error is {error} in {counter} iterations')
+        return guess2
 
     def findMomentTotal(self, strain, location, neutral_axis=0):
         if neutral_axis:
